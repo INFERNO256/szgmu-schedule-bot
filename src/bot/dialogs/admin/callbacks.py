@@ -28,5 +28,5 @@ async def on_sync_all(
     except Exception as e:
         await callback.bot.send_message(
             callback.from_user.id,
-            f"❌ Ошибка при синхронизации: {str(e)}",
+            f"❌ Ошибка при синхронизации: {e!s}",
         )

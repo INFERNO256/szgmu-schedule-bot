@@ -20,7 +20,7 @@ class BaseAPIClient:
         timeout: float = 30.0,
         max_retries: int = 3,
         retry_delay: float = 1.0,
-    ):
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = ClientTimeout(total=timeout)
         self.max_retries = max_retries
@@ -31,7 +31,7 @@ class BaseAPIClient:
         await self._ensure_session()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):  # noqa: ANN001
         await self.close()
 
     async def _ensure_session(self) -> None:
@@ -67,7 +67,7 @@ class BaseAPIClient:
             try:
                 return await self._make_request(method, endpoint, **kwargs)
 
-            except (ClientError, asyncio.TimeoutError) as e:
+            except (TimeoutError, ClientError) as e:
                 last_exception = e
 
                 if attempt < self.max_retries - 1:
@@ -92,10 +92,9 @@ class BaseAPIClient:
             raise APITimeoutError(
                 f"Request timeout after {self.max_retries} attempts"
             ) from last_exception
-        else:
-            raise APINetworkError(
-                f"Request failed after {self.max_retries} attempts: {str(last_exception)}"
-            ) from last_exception
+        raise APINetworkError(
+            f"Request failed after {self.max_retries} attempts: {last_exception!s}"
+        ) from last_exception
 
     async def _make_request(
         self,
@@ -110,7 +109,8 @@ class BaseAPIClient:
             async with self._session.request(method, url, **kwargs) as response:
                 response.raise_for_status()
 
-                if response.status == 204:  # No Content
+                no_content = 204
+                if response.status == no_content:
                     return {}
 
                 content_type = response.headers.get("Content-Type", "")
@@ -131,13 +131,13 @@ class BaseAPIClient:
                 status_code=e.status,
             ) from e
 
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             logger.error("API request timeout for %s", url)
             raise APITimeoutError(f"Request timeout after {self.timeout.total} seconds") from e
 
         except ClientError as e:
-            logger.error("Network error for %s: %s", url, str(e))
-            raise APINetworkError(f"Network error: {str(e)}") from e
+            logger.error("Network error for %s: %s", url, e)
+            raise APINetworkError(f"Network error: {e!s}") from e
 
     async def _request(
         self,

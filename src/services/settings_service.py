@@ -37,7 +37,7 @@ class SettingsService:
         """
         is_updated = await self.user_repo.update_subscription(telegram_id, is_subscribed)
         await self.session.commit()
-        logger.info(f"User {telegram_id} notifications toggled: {is_subscribed}")
+        logger.info("User %d notifications toggled: %s", telegram_id, is_subscribed)
         return is_updated
 
     async def set_notification_time(self, telegram_id: int, notification_time: time) -> bool:
@@ -52,7 +52,7 @@ class SettingsService:
         """
         is_updated = await self.user_repo.update_notification_time(telegram_id, notification_time)
         await self.session.commit()
-        logger.info(f"User {telegram_id} notification time set to {notification_time}")
+        logger.info("User %d notification time set to %s", telegram_id, notification_time)
         return is_updated
 
     async def get_users_for_notification_batch(self, target_time: time) -> list:

@@ -3,7 +3,6 @@ from aiogram_dialog.widgets.kbd import Back, Cancel, Column, Select, Start
 from aiogram_dialog.widgets.text import Const, Format
 
 from bot.dialogs.main_menu.states import MainMenuSG
-
 from .callbacks import (
     on_course_selected,
     on_group_selected,

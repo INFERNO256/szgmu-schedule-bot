@@ -25,7 +25,7 @@ class GroupSelectionService:
         speciality_repo: SpecialityRepository,
         group_repo: GroupRepository,
         subgroup_repo: SubgroupRepository,
-    ):
+    ) -> None:
         """Initialize GroupSelectionService with repositories.
 
         Args:
@@ -56,8 +56,7 @@ class GroupSelectionService:
         Returns:
             Sorted list of course numbers
         """
-        courses = await self.group_repo.find_distinct_courses(speciality_id)
-        return courses
+        return await self.group_repo.find_distinct_courses(speciality_id)
 
     async def get_streams_by_speciality_course(
         self, speciality_id: int, course_number: int
