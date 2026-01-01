@@ -53,6 +53,17 @@ class UserService:
             logger.error(f"Error creating/updating user {telegram_id}: {str(e)}")
             raise UserNotFoundError(f"Failed to create/update user: {str(e)}") from e
 
+    async def get_by_telegram_id(self, telegram_id: int) -> User | None:
+        """Get user by Telegram ID.
+
+        Args:
+            telegram_id: Telegram user ID
+
+        Returns:
+            User instance or None if not found
+        """
+        return await self.user_repo.find_by_id(telegram_id)
+
     async def set_user_subgroup(self, telegram_id: int, subgroup_id: int) -> bool:
         """Set user's subgroup.
 
