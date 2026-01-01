@@ -2,10 +2,12 @@ import asyncio
 import logging
 import sys
 
-# from aiogram import Bot, Dispatcher
-# from dishka.integrations.aiogram import setup_dishka
+from aiogram import Bot
+from aiogram.client.bot import DefaultBotProperties
+
+from bot.app import create_dispatcher, run_bot
+from core.config import BotSettings, RedisSettings
 from di.container import create_container
-from services.sync_service import SyncService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,40 +17,21 @@ logger = logging.getLogger(__name__)
 
 
 async def main():
-    """Main application."""
-    logger.info("Starting initial sync...")
-
-    # settings = Settings()
-
-    # bot = Bot(settings.bot.token.get_secret_value())
-    # dp = Dispatcher()
+    logger.info("Initializing bot container...")
 
     container = create_container()
-    # setup_dishka(container, router=dp, auto_inject=True)
 
-    try:
-        async with container() as nested_container:
-            sync_service = await nested_container.get(SyncService)
-            await run_initial_sync(sync_service)
-    except KeyboardInterrupt:
-        logger.info("Shutting down...")
-    finally:
-        await container.close()
-        # await bot.session.close()
-        logger.info("Stopped")
+    bot_settings: BotSettings = await container.get(BotSettings)
+    redis_settings: RedisSettings = await container.get(RedisSettings)
 
+    bot = Bot(
+        token=bot_settings.token.get_secret_value(), default=DefaultBotProperties(parse_mode="HTML")
+    )
+    dispatcher = await create_dispatcher(
+        bot, container, redis_settings if bot_settings.use_redis else None
+    )
 
-async def run_initial_sync(sync_service: SyncService):
-    """Run initial sync on startup."""
-    logger.info("Running initial sync...")
-
-    try:
-        await sync_service.sync_all_schedules()
-        logger.info("Initial sync completed")
-
-    except Exception as e:
-        logger.error(f"Initial sync failed: {e}", exc_info=True)
-        raise
+    await run_bot(bot, dispatcher)
 
 
 if __name__ == "__main__":
