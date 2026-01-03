@@ -17,7 +17,7 @@ jobs:
         run: pipx install uv
 
       - name: Install dependencies
-        run: uv pip install .[test]
+        run: uv venv && uv pip install .[test]
 
       - name: Run tests
-        run: PYTHONPATH=src pytest tests/unit
+        run: uv run python -m pytest tests/unit
