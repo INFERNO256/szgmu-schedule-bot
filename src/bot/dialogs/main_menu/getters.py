@@ -18,7 +18,7 @@ async def get_main_menu_data(
     telegram_id = dialog_manager.middleware_data["event_from_user"].id
     user = await user_service.get_by_telegram_id(telegram_id)
     if not user or not user.subgroup_id:
-        return {"has_group": False}
+        return {"has_group": False, "is_admin": telegram_id in settings.admin_ids}
 
     return {
         "has_group": True,

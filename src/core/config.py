@@ -25,6 +25,7 @@ class BotSettings(ConfigBase):
     token: SecretStr = Field(..., description="Telegram Bot Token")
     admin_ids: list[int] = Field(default_factory=list, description="List of admin Telegram IDs")
     use_redis: bool = Field(default=False, description="Use RedisStorage vs MemoryStorage")
+    run_initial_sync: bool = Field(default=True, description="Run initial schedule sync on startup")
 
 
 class DatabaseSettings(ConfigBase):
