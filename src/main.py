@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 import sys
 
@@ -22,6 +23,7 @@ from bot.dialogs import (
 from bot.handlers.user import router as user_router
 from core.config import BotSettings, RedisSettings
 from di.container import create_container
+from services.sync_service import SyncService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -57,6 +59,18 @@ def create_storage(
     return MemoryStorage()
 
 
+async def run_initial_sync(sync_service: SyncService):
+    """Run initial sync on startup."""
+    logger.info("Running initial sync...")
+
+    try:
+        await sync_service.sync_all_schedules()
+        logger.info("Initial sync completed")
+
+    except Exception as e:
+        logger.error("Initial sync failed: %s", e)
+
+
 async def main() -> None:
     logger.info("Starting bot initialization...")
 
@@ -73,7 +87,7 @@ async def main() -> None:
 
     dp = Dispatcher(storage=storage)
 
-    setup_bot_commands(bot)
+    await setup_bot_commands(bot)
     setup_dishka(container, dp)
     setup_dialogs(dp)
 
@@ -87,6 +101,12 @@ async def main() -> None:
         admin_dialog,
     )
 
+    sync_task: asyncio.Task | None = None
+    if bot_settings.run_initial_sync:
+        async with container() as nested_container:
+            sync_service = await nested_container.get(SyncService)
+            sync_task = asyncio.create_task(run_initial_sync(sync_service))
+
     try:
         logger.info("Bot started polling...")
         await dp.start_polling(bot)
@@ -94,6 +114,11 @@ async def main() -> None:
         logger.error("Bot polling failed: %s", e)
         raise
     finally:
+        # Ensure sync task is completed or cancelled
+        if sync_task and not sync_task.done():
+            sync_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await sync_task
         await container.close()
         await bot.session.close()
 
