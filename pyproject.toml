@@ -98,3 +98,11 @@ addopts = [
     "--cov-report=term-missing",
 ]
 asyncio_mode = "auto"
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+omit = [
+    "src/bot/*",
+    "src/main.py",
+]
