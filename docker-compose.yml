@@ -17,7 +17,7 @@ services:
 
   # PostgreSQL (Async configured)
   db:
-    image: postgres:17-alpine
+    image: postgres:17
     environment:
       POSTGRES_USER: ${DB_USER:-szgmu_bot}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
