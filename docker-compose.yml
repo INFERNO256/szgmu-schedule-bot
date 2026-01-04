@@ -2,10 +2,6 @@ services:
   # Main Bot Service
   bot:
     build: .
-    env_file: .env
-    environment:
-      - DB_HOST=db
-      - REDIS_HOST=redis
     depends_on:
       db:
         condition: service_healthy
