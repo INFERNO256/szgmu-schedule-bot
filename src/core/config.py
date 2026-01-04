@@ -50,13 +50,14 @@ class RedisSettings(ConfigBase):
 
     host: str = Field(default="localhost", description="Redis host")
     port: int = Field(default=6379, description="Redis port")
-    password: SecretStr = Field(..., description="DB password")
+    user: str = Field(..., description="Redis user")
+    password: SecretStr = Field(..., description="Redis password")
     database: int = Field(default=0, description="Redis database")
 
     @property
     def dsn(self) -> str:
-        if self.password:
-            return f"redis://{self.password.get_secret_value()}@{self.host}:{self.port}/{self.database}"
+        if self.user and self.password:
+            return f"redis://{self.user}:{self.password.get_secret_value()}@{self.host}:{self.port}/{self.database}"
         return f"redis://{self.host}:{self.port}/{self.database}"
 
 
